@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateTaskDto } from './create-task.dto';
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {
-    name: string;
-    dueDate: Date;
+  id: number;
+  name: string;
+  dueDate: Date;
 }
