@@ -2,7 +2,8 @@ import { Controller } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { CreateTaskRequest, Task, GetTaskRequest, ListTasksResponse, UpdateTaskRequest, DeleteTaskRequest, ListTasksRequest } from 'stubs/task/v1alpha/task';
-import { CreateTaskDto, toJs, toGrpc } from './dto/create-task.dto';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { taskToGrpc, taskToJs } from './tasks.utils';
 
 @Controller()
 export class TasksController {
@@ -14,8 +15,17 @@ export class TasksController {
       const task = await this.tasksService.create(
         new CreateTaskDto(request.task),
       );
-      return { ...task, dueDate: task.dueDate.toISOString() } as any;
+      return taskToGrpc(task) as any;
     }catch(err){
+      if (err.code === 'P2009') {
+        throw new RpcException({ message: 'Invalid Entry Data', code: 3 });
+      }
+      if (err.code === 'P2002') {
+        throw new RpcException({ message: 'Task with same Name already exists', code: 6 });
+      }
+      if(err instanceof RpcException){
+        throw err;
+      }
       throw new RpcException(err);
     }
   }
@@ -24,8 +34,11 @@ export class TasksController {
   async ListTasks(request: ListTasksRequest): Promise<ListTasksResponse> {
     try{
       const tasks = await this.tasksService.findAll();
-      return ListTasksResponse.create({ task: tasks.map(toGrpc) });
+      return ListTasksResponse.create({ task: tasks.map(taskToGrpc) });
     }catch(err){
+      if(err instanceof RpcException){
+        throw err;
+      }
       throw new RpcException(err);
     }
   }
@@ -33,10 +46,19 @@ export class TasksController {
   @GrpcMethod('TaskService')
   async GetTask(request: GetTaskRequest): Promise<Task> {
     try{
+      if(request.name == "" || request.name == null){
+        throw new RpcException({ message: 'Invalid Entry Data', code: 3 });
+      }
       const task = await this.tasksService.findByName(request.name);
-      return { ...task, dueDate: task.dueDate.toISOString() } as any;
+      if (!task) {
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
+      return taskToGrpc(task) as any;
     }catch(err){
-      throw new RpcException(err);
+      if(err instanceof RpcException){
+        throw err;
+      }
+      throw new RpcException(err.error);
     }
   }
 
@@ -44,13 +66,21 @@ export class TasksController {
   async UpdateTask(request: UpdateTaskRequest): Promise<Task> {
     try{
       let task = await this.tasksService.findOne(request.task.id);
-      task = await this.tasksService.update(request.task.id, {
-        name: request.task.name,
-        dueDate: new Date(request.task.dueDate),
-        done: request.task.done,
-      });
-      return { ...task, dueDate: task.dueDate.toISOString() } as any;
+      if (!task) {
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
+      task = await this.tasksService.update(request.task.id, taskToJs(request.task));
+      return taskToGrpc(task) as any;
     }catch(err){
+      if (err.code === 'P2009') {
+        throw new RpcException({ message: 'Invalid Entry Data', code: 3 });
+      }
+      if (err.code === 'P2002') {
+        throw new RpcException({ message: 'Name Already Used', code: 6 });
+      }
+      if(err instanceof RpcException){
+        throw err;
+      }
       throw new RpcException(err);
     }
   }
@@ -59,9 +89,15 @@ export class TasksController {
   async DeleteTask(request: DeleteTaskRequest): Promise<Task> {
     try{
       const task = await this.tasksService.findByName(request.name);
+      if(!task){
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
       await this.tasksService.remove(task.id);
-      return { ...task, dueDate: task.dueDate.toISOString() } as any;
+      return taskToGrpc(task) as any;
     }catch(err){
+      if(err instanceof RpcException){
+        throw err;
+      }
       throw new RpcException(err);
     }
   }
