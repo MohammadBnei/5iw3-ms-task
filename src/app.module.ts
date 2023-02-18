@@ -12,7 +12,7 @@ import Joi from 'joi';
         NODE_ENV: Joi.string()
           .valid('development', 'production', 'test', 'provision')
           .default('development'),
-        PORT: Joi.number().default(5000),
+        PORT: Joi.number().default(5001),
         DB_URL: Joi.string().required(),
       }),
     }),
