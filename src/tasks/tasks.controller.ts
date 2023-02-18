@@ -3,7 +3,8 @@ import { TasksService } from './tasks.service';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { CreateTaskRequest, Task, GetTaskRequest, ListTasksResponse, UpdateTaskRequest, DeleteTaskRequest, ListTasksRequest } from 'stubs/task/v1alpha/task';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { taskToGrpc, taskToJs } from './tasks.utils';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { taskToGrpc } from './tasks.utils';
 
 @Controller()
 export class TasksController {
@@ -69,7 +70,7 @@ export class TasksController {
       if (!task) {
         throw new RpcException({ message: 'Task not found', code: 5 });
       }
-      task = await this.tasksService.update(request.task.id, taskToJs(request.task));
+      task = await this.tasksService.update(request.task.id, new UpdateTaskDto(request.task));
       return taskToGrpc(task) as any;
     }catch(err){
       if (err.code === 'P2009') {
