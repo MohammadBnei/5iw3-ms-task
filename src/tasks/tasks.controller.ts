@@ -34,9 +34,10 @@ export class TasksController {
   @GrpcMethod('TaskService')
   async ListTasks(request: ListTasksRequest): Promise<ListTasksResponse> {
     try{
-      const tasks = await this.tasksService.findAll();
+      const tasks = await this.tasksService.findAll(request.pageToken, request.pageSize);
       return ListTasksResponse.create({ task: tasks.map(taskToGrpc) });
     }catch(err){
+      console.log(err);
       if(err instanceof RpcException){
         throw err;
       }

@@ -12,8 +12,10 @@ export class TasksService {
     return task;
   }
 
-  async findAll() {
-    return this.prisma.task.findMany();
+  async findAll(page: string = '1', limit: number = 5) {
+    if(!page || page == '0' || isNaN(parseInt(page))) page = '1';
+    if(!limit || limit <= 0 || isNaN(limit)) limit = 5;
+    return this.prisma.task.findMany({skip: (parseInt(page) - 1) * limit, take: limit});
   }
 
   async findOne(id: number) {
