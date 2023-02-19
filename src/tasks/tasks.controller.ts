@@ -10,9 +10,9 @@ import {
   UpdateTaskRequest,
   DeleteTaskRequest
 } from 'stubs/task/v1alpha/task';
-import { CreateTaskDto, toJs } from './dto/create-task.dto';
+import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Status } from '@grpc/grpc-js/build/src/constants';
+import { status } from '@grpc/grpc-js';
 
 @Controller()
 export class TasksController {
@@ -27,9 +27,16 @@ export class TasksController {
 
       return { ...task, dueDate: task.dueDate.toISOString() } as any;
     } catch (error) {
+      if(error?.code === 'P2009'){
+        throw new RpcException({
+          code: status.INVALID_ARGUMENT,
+          message: 'Invalid argument(s)',
+        });
+      }
+
       if (error?.code === 'P2002') {
         throw new RpcException({
-          code: Status.INVALID_ARGUMENT,
+          code: status.ALREADY_EXISTS,
           message: request.task.name + ' is already taken',
         });
       }
@@ -40,7 +47,8 @@ export class TasksController {
 
   @GrpcMethod('TaskService')
   async ListTasks(request: ListTasksRequest): Promise<ListTasksResponse> {
-    const tasks = await this.tasksService.findAll();
+    const { pageSize, pageToken } = request;
+    const {tasks, nextPageToken} = await this.tasksService.findAll(pageSize, parseInt(pageToken));
 
     return {
       task: tasks.map((task) => {
@@ -49,17 +57,17 @@ export class TasksController {
           dueDate: task.dueDate.toISOString(),
         };
       }),
-      nextPageToken: '',
+      nextPageToken,
     };
   }
 
   @GrpcMethod('TaskService')
   async GetTask(request: GetTaskRequest): Promise<Task> {
     try {
-      const task = await this.tasksService.findOne(request.name);
+      const task = await this.tasksService.findOneByName(request.name);
       if (!task) {
         throw new RpcException({
-          code: Status.NOT_FOUND,
+          code: status.NOT_FOUND,
           message: `"${request.name}" not found`,
         });
       }
@@ -68,6 +76,12 @@ export class TasksController {
         dueDate: task.dueDate.toISOString(),
       };
     } catch (error) {
+      if(error?.code === 'P2002'){
+        throw new RpcException({
+          code: status.NOT_FOUND,
+          message: request.name + ' not found',
+        });
+      }
       throw new RpcException(error);
     }
   }
@@ -75,12 +89,24 @@ export class TasksController {
   @GrpcMethod('TaskService')
   async UpdateTask(request: UpdateTaskRequest): Promise<Task> {
     try {
-      const task = await this.tasksService.update(request.task.id, new UpdateTaskDto(request.task));
+      if(!request.task){
+        throw new RpcException({
+          code: status.INVALID_ARGUMENT,
+          message: 'Task is required',
+        });
+      }
+      const task = await this.tasksService.update(request.task.id, new UpdateTaskDto(request.task));      
       return {
         ...task,
         dueDate: task.dueDate.toISOString(),
       };
     } catch (error) {
+      if(error?.code === 'P2025'){
+        throw new RpcException({
+          code: status.NOT_FOUND,
+          message: request.task.id + ' not found',
+        });
+      }
       throw new RpcException(error);
     }
   }
@@ -91,7 +117,7 @@ export class TasksController {
       const task = await this.tasksService.remove(request.name);
       if (!task) {
         throw new RpcException({
-          code: Status.NOT_FOUND,
+          code: status.NOT_FOUND,
           message: `"${request.name}" not found`,
         });
       }
@@ -100,6 +126,12 @@ export class TasksController {
         dueDate: task.dueDate.toISOString(),
       };
     } catch (error) {
+      if(error?.code === 'P2025'){
+        throw new RpcException({
+          code: status.NOT_FOUND,
+          message: request.name + ' not found',
+        });
+      }
       throw new RpcException(error);
     }
   }
