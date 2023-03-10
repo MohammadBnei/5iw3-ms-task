@@ -11,8 +11,3 @@ export class CreateTaskDto {
   name: string;
   dueDate: Date;
 }
-
-export const toJs = (task: Task) => ({
-  ...task,
-  dueDate: new Date(task.dueDate),
-});
