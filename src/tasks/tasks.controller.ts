@@ -25,9 +25,10 @@ export class TasksController {
       if (err.code === 'P2009') {
         throw new RpcException({ message: 'Data non valide', code: 3 });
       }
-      if (err.code === 'P2002') {
-        throw new RpcException({ message: 'Une tâche avec le même nom existe', code: 6 });
-      }
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: request.task.name + ' est déjà pris',
+      });
       throw new RpcException(err);
     }
   }
@@ -74,11 +75,10 @@ export class TasksController {
         throw new RpcException({ message: 'Data non valide', code: 3 });
       }
       if (err.code === 'P2002') {
-        throw new RpcException({ message: 'Une tâche avec le même nom existe', code: 6 });
-      }
-      if(err instanceof RpcException){
-        throw err;
-      }
+        throw new RpcException({
+          code: status.INVALID_ARGUMENT,
+          message: request.task.name + ' est déjà pris',
+        });}
       throw new RpcException(err);
     }
   }
@@ -93,9 +93,6 @@ export class TasksController {
       await this.tasksService.remove(task.id);
       return { ...task, dueDate: task.dueDate.toISOString() } as any;
     }catch(err){
-      if(err instanceof RpcException){
-        throw err;
-      }
       throw new RpcException(err);
     }
   }
