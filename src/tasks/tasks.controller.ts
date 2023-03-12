@@ -93,4 +93,17 @@ export class TasksController {
       throw new RpcException(err);
     }
   }
+
+  @GrpcMethod('TaskService')
+  async ListTasksPaged(request: ListTasksRequest): Promise<ListTasksResponse> {
+    try {
+      const { task, nextPageToken } = await this.tasksService.listTasks(
+          request.pageSize,
+          request.currentPage,
+      );
+      return ListTasksResponse.create({ task: task.map(toGrpc), nextPageToken });
+    } catch (err) {
+      throw new RpcException(err);
+    }
+  }
 }
