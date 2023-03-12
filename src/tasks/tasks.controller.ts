@@ -4,6 +4,7 @@ import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import {
   CreateTaskRequest,
   DeleteTaskRequest,
+  GetTaskRequest,
   Task,
   UpdateTaskRequest,
 } from 'stubs/task/v1alpha/task';
@@ -68,6 +69,19 @@ export class TasksController {
       if (err.code === 'P2009') {
         throw new RpcException({ message: 'Invalid entry data', code: 3 });
       }
+      throw new RpcException(err);
+    }
+  }
+
+  @GrpcMethod('TaskService')
+  async GetTask(req: GetTaskRequest): Promise<Task> {
+    try {
+      const t = await this.tasksService.findByName(req.name);
+      if (!t) {
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
+      return { ...t } as any;
+    } catch (err) {
       throw new RpcException(err);
     }
   }
