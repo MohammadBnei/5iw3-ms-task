@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
+import {Injectable} from '@nestjs/common';
+import {PrismaService} from 'prisma/prisma.service';
+import {CreateTaskDto} from './dto/create-task.dto';
+import {UpdateTaskDto} from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -30,14 +30,25 @@ export class TasksService {
     });
   }
 
-  // async changeStatus(id: number) {
-  //   const task = await this.taskRepository.findOne(id);
-  //   task.done = !task.done;
-  //   await this.taskRepository.flush();
-  //   return task;
-  // }
-
   async remove(id: number) {
     return this.prisma.task.delete({ where: { id } });
+  }
+
+  async listTasks(pageSize: number, currentPage: number) {
+    const skip = pageSize * (currentPage - 1);
+    const [tasks, total] = await Promise.all([
+      this.prisma.task.findMany({
+        take: pageSize,
+        skip: skip,
+      }),
+      this.prisma.task.count(),
+    ]);
+    const totalPages = Math.ceil(total / pageSize);
+    const nextPageToken =
+        currentPage < totalPages ? String(currentPage + 1) : '';
+    return {
+      task: tasks,
+      nextPageToken: nextPageToken,
+    };
   }
 }
