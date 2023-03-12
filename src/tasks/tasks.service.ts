@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -9,6 +10,40 @@ export class TasksService {
   async create(createTaskDto: CreateTaskDto) {
     const task = await this.prisma.task.create({ data: createTaskDto });
     return task;
+  }
+
+  async findAllTasks(tasksPerPage: number, pageNumber: number) {
+    if (isNaN(pageNumber)) throw new Error('Page number must be a number');
+    if (isNaN(tasksPerPage)) throw new Error('Tasks per page must be a number');
+
+    const skip = tasksPerPage * (pageNumber - 1);
+    const tasks = await this.prisma.task.findMany({
+      skip,
+      take: tasksPerPage,
+    });
+    return {
+      tasks,
+      nextPageToken: tasks.length <= tasksPerPage ? '' : (pageNumber + 1).toString(),
+    };
+  }
+
+  findOneById(id: number) {
+    return this.prisma.task.findUnique({ where: { id } });
+  }
+
+  findOneByName(name: string) {
+    return this.prisma.task.findUnique({ where: { name } });
+  }
+
+  updateTask(id: number, updateTaskDto: UpdateTaskDto) {
+    return this.prisma.task.update({
+      where: { id },
+      data: updateTaskDto,
+    });
+  }
+
+  removeTaskByName(name: string) {
+    return this.prisma.task.delete({ where: { name } });
   }
 
   // findAll() {
