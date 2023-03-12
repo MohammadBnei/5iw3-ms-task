@@ -10,6 +10,7 @@ export class CreateTaskDto {
   }
   name: string;
   dueDate: Date;
+  done: boolean;
 }
 
 export const toJs = (task: Task) => ({
