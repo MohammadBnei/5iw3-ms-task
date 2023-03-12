@@ -20,11 +20,16 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "nest": "nest",
     "prisma": "prisma",
-    "release": "release-it"
+    "release": "release-it",
+    "db:migrate": "npx prisma migrate dev --name user-entity --create-only && npx prisma generate",
+    "db:push": "npx prisma db push"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.8.9",
     "@grpc/proto-loader": "^0.7.5",
+    "@mikro-orm/core": "^5.6.13",
+    "@mikro-orm/mysql": "^5.6.13",
+    "@mikro-orm/nestjs": "^5.1.7",
     "@nestjs/common": "^9.3.9",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
@@ -37,7 +42,8 @@
     "dotenv": "^16.0.3",
     "joi": "^17.7.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "webpack": "^5.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

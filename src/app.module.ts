@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TasksModule } from './tasks/tasks.module';
 import Joi from 'joi';
-
+import mikroOrmConfig from './mikro-orm.config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -15,6 +16,7 @@ import Joi from 'joi';
       }),
     }),
     TasksModule,
+    MikroOrmModule.forRoot(mikroOrmConfig),
   ],
 })
 export class AppModule {}
