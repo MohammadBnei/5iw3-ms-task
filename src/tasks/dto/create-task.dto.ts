@@ -16,3 +16,13 @@ export const toJs = (task: Task) => ({
   ...task,
   dueDate: new Date(task.dueDate),
 });
+
+export const toGrpc = (task: {
+  id: number;
+  name: string;
+  dueDate: Date;
+  done: boolean;
+}) => ({
+  ...task,
+  dueDate: task.dueDate.toISOString(),
+});
