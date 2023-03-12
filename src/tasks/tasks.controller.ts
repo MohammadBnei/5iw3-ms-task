@@ -1,8 +1,13 @@
 import { Controller } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
-import { CreateTaskRequest, Task } from 'stubs/task/v1alpha/task';
-import { CreateTaskDto } from './dto/create-task.dto';
+import {
+  CreateTaskRequest,
+  DeleteTaskRequest,
+  Task,
+  UpdateTaskRequest,
+} from 'stubs/task/v1alpha/task';
+import { CreateTaskDto, toJs } from './dto/create-task.dto';
 import { status } from '@grpc/grpc-js';
 
 @Controller()
@@ -27,6 +32,43 @@ export class TasksController {
       }
 
       throw new RpcException(error);
+    }
+  }
+
+  @GrpcMethod('TaskService')
+  async DeleteTask(req: DeleteTaskRequest): Promise<Task> {
+    try {
+      const t = await this.tasksService.findByName(req.name);
+      if (!t) {
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
+      await this.tasksService.remove(t.id);
+      return { ...t } as any;
+    } catch (err) {
+      throw new RpcException(err);
+    }
+  }
+
+  @GrpcMethod('TaskService')
+  async UpdateTask(req: UpdateTaskRequest): Promise<Task> {
+    try {
+      const t = await this.tasksService.findOne(req.task.id);
+      if (!t) {
+        throw new RpcException({ message: 'Task not found', code: 5 });
+      }
+      const updatedTask = await this.tasksService.update(
+        req.task.id,
+        toJs(req.task),
+      );
+      return {
+        ...updatedTask,
+        dueDate: updatedTask.dueDate.toISOString(),
+      } as any;
+    } catch (err) {
+      if (err.code === 'P2009') {
+        throw new RpcException({ message: 'Invalid entry data', code: 3 });
+      }
+      throw new RpcException(err);
     }
   }
 }
