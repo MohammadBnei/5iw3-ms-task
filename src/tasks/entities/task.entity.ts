@@ -16,4 +16,5 @@ export class Task {
   // eslint-disable-next-line @typescript-eslint/no-inferrable-types
   @Property()
   done: boolean = false;
+  
 }

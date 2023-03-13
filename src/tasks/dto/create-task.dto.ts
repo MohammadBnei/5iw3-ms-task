@@ -7,9 +7,12 @@ export class CreateTaskDto {
   constructor(task: Task) {
     this.name = task.name;
     this.dueDate = new Date(task.dueDate);
+    this.done = task.done;
   }
   name: string;
   dueDate: Date;
+  done: boolean;
+
 }
 
 export const toJs = (task: Task) => ({
