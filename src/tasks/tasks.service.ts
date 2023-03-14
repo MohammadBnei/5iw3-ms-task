@@ -11,7 +11,11 @@ export class TasksService {
   }
 
   async findAll() {
+    let isTaskCreated = await this.prisma.task.findMany();
+    if (isTaskCreated.length === 0) {
     return await this.prisma.task.findMany();
+  } else {
+    throw new Error('No tasks found');}
   }
 
   findOne(id: number) {
