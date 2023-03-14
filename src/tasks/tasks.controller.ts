@@ -6,6 +6,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { taskToGrpc } from './tasks.utils';
 
+// Maxime Malecot, 5IW3, 2023
 @Controller()
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
