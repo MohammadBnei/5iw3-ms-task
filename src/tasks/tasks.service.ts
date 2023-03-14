@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -11,30 +12,29 @@ export class TasksService {
     return task;
   }
 
-  // findAll() {
-  //   return this.taskRepository.findAll();
-  // }
+  async findAll() {
+    return this.prisma.task.findMany();
+  }
 
-  // findOne(id: number) {
-  //   return this.taskRepository.findOne(id);
-  // }
+  async findOne(id: number) {
+    const task = this.prisma.task.findUnique({ where: { id } });
+    return task;
+  }
 
-  // async update(id: number, updateTaskDto: UpdateTaskDto) {
-  //   let task = await this.taskRepository.findOne(id);
-  //   task = await this.taskRepository.assign(task, updateTaskDto);
-  //   await this.taskRepository.flush();
-  //   return task;
-  // }
+  async findByName(name: string) {
+    const task = this.prisma.task.findUnique({ where: { name } });
+    return task;
+  }
 
-  // async changeStatus(id: number) {
-  //   const task = await this.taskRepository.findOne(id);
-  //   task.done = !task.done;
-  //   await this.taskRepository.flush();
-  //   return task;
-  // }
+  async update(id: number, updateTaskDto: UpdateTaskDto) {
+    const task = await this.prisma.task.update({
+      where: { id },
+      data: updateTaskDto,
+    });
+    return task;
+  }
 
-  // async remove(id: number) {
-  //   const task = await this.taskRepository.findOne(id);
-  //   return this.taskRepository.removeAndFlush(task);
-  // }
+  async remove(id: number) {
+    return this.prisma.task.remove({ where: { id } });
+  }
 }
