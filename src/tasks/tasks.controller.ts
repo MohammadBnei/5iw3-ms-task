@@ -1,10 +1,11 @@
+/** MBOUOPDA NDEFFO CORNELIUS JUGAL - 5IW3 */
 import { Controller } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { CreateTaskRequest, Task, GetTaskRequest, ListTasksResponse, UpdateTaskRequest, DeleteTaskRequest, ListTasksRequest } from 'stubs/task/v1alpha/task';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { fromTaskToGrpc } from './task.utils';
+import { fromTaskToGrpc } from './global.functions';
 import { status } from '@grpc/grpc-js';
 
 @Controller()
