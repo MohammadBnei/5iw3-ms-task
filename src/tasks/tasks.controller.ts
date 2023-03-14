@@ -45,7 +45,9 @@ export class TasksController {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async ListTasks(request: ListTasksRequest): Promise<ListTasksResponse> {
     try {
-      const tasks = await this.tasksService.findAll();
+      let pageSize = request.pageSize;
+      let pageToken = request.pageToken;
+      const tasks = await this.tasksService.findAll(request.pageToken, request.pageSize);
       return ListTasksResponse.create(
         { task: tasks.map(this.tasksService.taskToGrpc) },
         // task: tasks.map(function (currentTask) {

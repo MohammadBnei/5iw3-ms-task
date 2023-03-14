@@ -17,8 +17,17 @@ export class TasksService {
     return task;
   }
 
-  async findAll() {
-    return this.prisma.task.findMany();
+  async findAll(pageToken: string, pageSize: number) {
+    if (!pageToken || pageToken == '0') {
+      pageToken = '10';
+    }
+    if (!pageSize) {
+      pageSize = 10;
+    }
+    return this.prisma.task.findMany({
+      take: parseInt(pageToken),
+      skip: pageSize,
+    });
   }
 
   async findById(id: number) {
