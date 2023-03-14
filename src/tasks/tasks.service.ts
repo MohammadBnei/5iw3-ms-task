@@ -21,12 +21,12 @@ export class TasksService {
     if (!pageToken || pageToken == '0') {
       pageToken = '10';
     }
-    if (!pageSize) {
-      pageSize = 10;
+    if (!pageSize || pageSize == 0) {
+      pageSize = 1;
     }
     return this.prisma.task.findMany({
       take: parseInt(pageToken),
-      skip: pageSize,
+      skip: (pageSize - 1) * parseInt(pageToken),
     });
   }
 
@@ -61,6 +61,9 @@ export class TasksService {
         data,
       });
     } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new NotFoundException(`Task with id ${id} not found`);
+      }
       throw new Error(error.message);
     }
   }

@@ -45,15 +45,13 @@ export class TasksController {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async ListTasks(request: ListTasksRequest): Promise<ListTasksResponse> {
     try {
-      let pageSize = request.pageSize;
-      let pageToken = request.pageToken;
-      const tasks = await this.tasksService.findAll(request.pageToken, request.pageSize);
-      return ListTasksResponse.create(
-        { task: tasks.map(this.tasksService.taskToGrpc) },
-        // task: tasks.map(function (currentTask) {
-        //   return { ...currentTask, dueDate: currentTask.dueDate.toISOString() };
-        // })
+      const tasks = await this.tasksService.findAll(
+        request.pageToken,
+        request.pageSize,
       );
+      return ListTasksResponse.create({
+        task: tasks.map(this.tasksService.taskToGrpc),
+      });
     } catch (error) {
       throw new RpcException((error as RpcException).message || error);
     }
@@ -116,7 +114,7 @@ export class TasksController {
   }
 
   @GrpcMethod('TaskService')
-  async RemoveTask(request: DeleteTaskRequest): Promise<Task> {
+  async DeleteTask(request: DeleteTaskRequest): Promise<Task> {
     try {
       let task = await this.tasksService.findByName(request.name);
       if (!task) {
@@ -131,11 +129,4 @@ export class TasksController {
       throw new RpcException(error);
     }
   }
-
-  // private async taskToGrpc(val, index, arr){
-  //   return {
-  //     ...val,
-  //     dueDate: val.dueDate.toISOString(),
-  //   };
-  // }
 }
